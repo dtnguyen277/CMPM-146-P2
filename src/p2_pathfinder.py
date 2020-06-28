@@ -20,8 +20,8 @@ def find_path(source_point, destination_point, mesh):
             endBox = box
             #print(x1,x2,y1,y2, "{", sx,sy, "}")
 
-    #for b in mesh['boxes']:
-        #print(b, mesh['adj'][b])
+    for b in mesh['boxes']:
+        print(b)
 
 
     """
@@ -50,7 +50,7 @@ def find_path(source_point, destination_point, mesh):
 
     while queue:
         current = heappop(queue)
-        print(str(current[1]))
+        #print(str(current[1]))
         if current[1] == endBox:
             print("Destination Found!")
             destFound = True
