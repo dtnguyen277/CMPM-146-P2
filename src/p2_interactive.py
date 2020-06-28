@@ -35,15 +35,20 @@ destination_point = None
 visited_boxes = []
 path = []
 
-
 def redraw():
 
     canvas.delete(tkinter.ALL)
     canvas.create_image((0,0), anchor=tkinter.NW, image=small_image)
 
-    for box in visited_boxes:
+    # drawing the outlines for all the boxes to make it more clear when testing
+    for box in mesh['boxes']:
         x1,x2,y1,y2 = shrink(box)
         canvas.create_rectangle(y1,x1,y2,x2,outline='pink')
+
+    # the visited boxes are now displayed as a solid blue to contrast with the pink outlines
+    for box in visited_boxes:
+        x1,x2,y1,y2 = shrink(box)
+        canvas.create_rectangle(y1,x1,y2,x2,fill='blue')
 
     for segment in path:
         x1,y1 = shrink(segment[0])
