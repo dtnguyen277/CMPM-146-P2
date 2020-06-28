@@ -1,3 +1,4 @@
+from heapq import heappop, heappush
 def find_path(source_point, destination_point, mesh):
     print(source_point, destination_point)
 
@@ -22,6 +23,7 @@ def find_path(source_point, destination_point, mesh):
     #for b in mesh['boxes']:
         #print(b, mesh['adj'][b])
 
+
     """
     Searches for a path from source_point to destination_point through the mesh
 
@@ -38,5 +40,30 @@ def find_path(source_point, destination_point, mesh):
 
     path = []
     boxes = {sourceBox: sourceBox, endBox: endBox}
+
+
+    #breadth search
+    queue = [(0, sourceBox)]
+    visited = {sourceBox: None}
+    cost_so_far = {sourceBox: 0}
+    destFound = False
+
+    while queue:
+        current = heappop(queue)
+        print(str(current[1]))
+        if current[1] == endBox:
+            print("Destination Found!")
+            destFound = True
+            break
+        for box in mesh['adj'][current[1]]:
+            if box not in visited:
+                visited[box] = current
+                #temp line method
+                line = ((box[0], box[2]), (box[1], box[3]))
+                path.append(line)
+                heappush(queue, (0, box))
+
+    if not destFound:
+        print("Destination was not found")
 
     return path, boxes.keys()
