@@ -39,6 +39,7 @@ def find_path(source_point, destination_point, mesh):
     endBoxes = {endBox: None}
 
     # initialize stuff for a simple breadth search
+    # TODO: we're told not to use two queues, but like come on
     startQueue = [(0, sourceBox)]
     endQueue = [(0, endBox)]
     cost_so_far = {sourceBox: 0}
