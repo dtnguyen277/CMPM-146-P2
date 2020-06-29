@@ -40,6 +40,7 @@ def find_path(source_point, destination_point, mesh):
     queue = [(0, sourceBox)]
     cost_so_far = {sourceBox: 0}
     destFound = False
+    # first point of the line is the end point so we set it here
     currPoint = (destination_point[0], destination_point[1])
 
     while queue:
@@ -51,14 +52,15 @@ def find_path(source_point, destination_point, mesh):
             destFound = True
 
             current_back_node = boxes[current[1]]
-            # print(current_back_node)
+            # loop stops right before the final node which is start
             while current_back_node != sourceBox:
-                # print(str(current_back_node) + " tests")
+                # creates the next point from the next box
                 nextPoint = ((current_back_node[0] + current_back_node[1])/2, (current_back_node[2] + current_back_node[3])/2)
                 line = ((currPoint[0], currPoint[1]), (nextPoint[0], nextPoint[1]))
                 path.append(line)
                 currPoint = (nextPoint[0], nextPoint[1])
                 current_back_node = boxes[current_back_node]
+            # links source point to the line
             line = ((currPoint[0], currPoint[1]), (source_point[0], source_point[1]))
             path.append(line)
             break
