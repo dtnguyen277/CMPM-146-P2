@@ -40,6 +40,7 @@ def find_path(source_point, destination_point, mesh):
     queue = [(0, sourceBox)]
     cost_so_far = {sourceBox: 0}
     destFound = False
+    currPoint = (destination_point[0], destination_point[1])
 
     while queue:
         current = heappop(queue)
@@ -48,26 +49,42 @@ def find_path(source_point, destination_point, mesh):
         if current[1] == endBox:
             print("Destination Found!")
             destFound = True
+
+            current_back_node = boxes[current[1]]
+            # print(current_back_node)
+            while current_back_node != sourceBox:
+                # print(str(current_back_node) + " tests")
+                nextPoint = ((current_back_node[0] + current_back_node[1])/2, (current_back_node[2] + current_back_node[3])/2)
+                line = ((currPoint[0], currPoint[1]), (nextPoint[0], nextPoint[1]))
+                path.append(line)
+                currPoint = (nextPoint[0], nextPoint[1])
+                current_back_node = boxes[current_back_node]
+            line = ((currPoint[0], currPoint[1]), (source_point[0], source_point[1]))
+            path.append(line)
             break
 
         # check all neighbors and add them to the queue
         for box in mesh['adj'][current[1]]:
             if box not in boxes:
                 # mark as visited
-                boxes[box] = current
+                boxes[box] = current[1]
 
                 # TODO: fix this stupid stuff
                 # this is a simple middle point distance check, just as a first pass
                 xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
-                xMiddleLast, yMiddleLast = (current[1][0] + current[1][1])/2, (current[1][2] + current[1][3])/2
+                # xMiddleLast, yMiddleLast = (current[1][0] + current[1][1])/2, (current[1][2] + current[1][3])/2
+                # print(current)
 
                 # make the line from the middle points of this rectangle and the next
-                line = ((xMiddle, yMiddle), (xMiddleLast, yMiddleLast))
-                path.append(line)
+                # line = ((xMiddle, yMiddle), (xMiddleLast, yMiddleLast))
+                # path.append(line)
 
                 # add this neighbor to the queue with its distance to destination as its priority
                 distance = ((xMiddle - destination_point[0])**2 + (yMiddle - destination_point[1])**2)**0.5
                 heappush(queue, (distance, box))
+
+    # print(boxes[current[1]][1])
+    # print(boxes)
 
     if not destFound:
         print("Destination was not found")
