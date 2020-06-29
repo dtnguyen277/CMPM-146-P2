@@ -51,7 +51,7 @@ def find_path(source_point, destination_point, mesh):
             print("Destination Found!")
             destFound = True
 
-            current_back_node = boxes[current[1]]
+            current_back_node = endBox
 
             # backtrack through the boxes visited to make a line path
             while current_back_node != sourceBox:
