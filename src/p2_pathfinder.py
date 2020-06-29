@@ -41,7 +41,7 @@ def find_path(source_point, destination_point, mesh):
     cost_so_far = {sourceBox: 0}
     destFound = False
     # first point of the line is the end point so we set it here
-    currPoint = (destination_point[0], destination_point[1])
+    lastPoint = (destination_point[0], destination_point[1])
 
     while queue:
         current = heappop(queue)
@@ -52,16 +52,28 @@ def find_path(source_point, destination_point, mesh):
             destFound = True
 
             current_back_node = boxes[current[1]]
-            # loop stops right before the final node which is start
+
+            # backtrack through the boxes visited to make a line path
             while current_back_node != sourceBox:
-                # creates the next point from the next box
-                nextPoint = ((current_back_node[0] + current_back_node[1])/2, (current_back_node[2] + current_back_node[3])/2)
-                line = ((currPoint[0], currPoint[1]), (nextPoint[0], nextPoint[1]))
+                # to get the point for this box, take the last point
+                # and constrain it to the bounds of the next box
+                next_node = boxes[current_back_node]
+                thisPoint = (lastPoint[0], lastPoint[1])
+                thisPoint = (max(thisPoint[0], next_node[0]), thisPoint[1])
+                thisPoint = (min(thisPoint[0], next_node[1]), thisPoint[1])
+                thisPoint = (thisPoint[0], max(thisPoint[1], next_node[2]))
+                thisPoint = (thisPoint[0], min(thisPoint[1], next_node[3]))
+
+                # draw a line from the previous point to this point
+                line = ((lastPoint[0], lastPoint[1]), (thisPoint[0], thisPoint[1]))
                 path.append(line)
-                currPoint = (nextPoint[0], nextPoint[1])
-                current_back_node = boxes[current_back_node]
+
+                # go to the next box
+                lastPoint = (thisPoint[0], thisPoint[1])
+                current_back_node = next_node
+
             # links source point to the line
-            line = ((currPoint[0], currPoint[1]), (source_point[0], source_point[1]))
+            line = ((lastPoint[0], lastPoint[1]), (source_point[0], source_point[1]))
             path.append(line)
             break
 
@@ -71,22 +83,12 @@ def find_path(source_point, destination_point, mesh):
                 # mark as visited
                 boxes[box] = current[1]
 
-                # TODO: fix this stupid stuff
-                # this is a simple middle point distance check, just as a first pass
+                # this is just a simple middle point distance check
                 xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
-                # xMiddleLast, yMiddleLast = (current[1][0] + current[1][1])/2, (current[1][2] + current[1][3])/2
-                # print(current)
-
-                # make the line from the middle points of this rectangle and the next
-                # line = ((xMiddle, yMiddle), (xMiddleLast, yMiddleLast))
-                # path.append(line)
 
                 # add this neighbor to the queue with its distance to destination as its priority
                 distance = ((xMiddle - destination_point[0])**2 + (yMiddle - destination_point[1])**2)**0.5
                 heappush(queue, (distance, box))
-
-    # print(boxes[current[1]][1])
-    # print(boxes)
 
     if not destFound:
         print("Destination was not found")
