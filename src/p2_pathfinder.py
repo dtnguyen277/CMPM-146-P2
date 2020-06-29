@@ -34,7 +34,6 @@ def find_path(source_point, destination_point, mesh):
 
     # initialize the variables that will be returned by this function
     path = []
-    # TODO: putting too many boxes in the boxes list, only put the ones we actually explore
     boxes = {sourceBox: None}
     startBoxes = {sourceBox: None}
     endBoxes = {endBox: None}
@@ -65,7 +64,7 @@ def find_path(source_point, destination_point, mesh):
 
         if matching != None:
             # we have found a path, now time to make a good line
-            # TODO: this line should meet in the middle, instead of being one-way
+            # TODO: this line might want to meet in the middle, instead of being one-way; depends on what the instructors want
             print("Destination Found!")
 
             # populate the pathBoxes list with boxes from both sides of the search
