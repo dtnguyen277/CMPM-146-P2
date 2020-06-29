@@ -103,15 +103,18 @@ def find_path(source_point, destination_point, mesh):
 
         # check all neighbors and add them to the queue
         for box in mesh['adj'][startCurrent[1]]:
+
+            # this is just a simple middle point distance check
+            xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
+
+            # add this neighbor to the queue with its distance to destination as its priority
+            distance_from_dest = ((xMiddle - destination_point[0])**2 + (yMiddle - destination_point[1])**2)**0.5
+            distance_from_start = ((xMiddle - source_point[0])**2 + (yMiddle - source_point[1])**2)**0.5
+            distance = distance_from_start + distance_from_dest
             if box not in startBoxes:
                 # mark as visited
                 startBoxes[box] = startCurrent[1]
 
-                # this is just a simple middle point distance check
-                xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
-
-                # add this neighbor to the queue with its distance to destination as its priority
-                distance = ((xMiddle - destination_point[0])**2 + (yMiddle - destination_point[1])**2)**0.5
                 heappush(startQueue, (distance, box))
 
         # check all neighbors and add them to the queue
