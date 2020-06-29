@@ -42,10 +42,12 @@ def find_path(source_point, destination_point, mesh):
     # initialize stuff for a simple breadth search
     # TODO: we're told not to use two queues, but like come on
     startQueue = [(0, sourceBox)]
+    costFromStart = {}
     endQueue = [(0, endBox)]
-    cost_so_far = {sourceBox: 0}
+    costFromEnd = {}
+    matching = None
 
-    while True:
+    while matching == None:
         startCurrent = heappop(startQueue)
         endCurrent = heappop(endQueue)
 
@@ -56,7 +58,6 @@ def find_path(source_point, destination_point, mesh):
 
         # test if hit the same box with the start and end searches
         # if we do, then we have found a path
-        matching = None
         if startCurrent[1] in endBoxes:
             matching = startCurrent[1]
         if endCurrent[1] in startBoxes:
@@ -103,29 +104,33 @@ def find_path(source_point, destination_point, mesh):
 
         # check all neighbors and add them to the queue
         for box in mesh['adj'][startCurrent[1]]:
-            if box not in startBoxes:
+            xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
+            distance = ((xMiddle - destination_point[0])**2 + (yMiddle - destination_point[1])**2)**0.5
+
+            newCost = distance
+            if box in costFromStart:
+                newCost = costFromStart[box] + distance
+
+            if box not in costFromStart or newCost < costFromStart[box]:
                 # mark as visited
                 startBoxes[box] = startCurrent[1]
-
-                # this is just a simple middle point distance check
-                xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
-
-                # add this neighbor to the queue with its distance to destination as its priority
-                distance = ((xMiddle - destination_point[0])**2 + (yMiddle - destination_point[1])**2)**0.5
-                heappush(startQueue, (distance, box))
+                costFromStart[box] = newCost
+                heappush(startQueue, (newCost, box))
 
         # check all neighbors and add them to the queue
         for box in mesh['adj'][endCurrent[1]]:
-            if box not in endBoxes:
+            xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
+            distance = ((xMiddle - source_point[0])**2 + (yMiddle - source_point[1])**2)**0.5
+
+            newCost = distance
+            if box in costFromEnd:
+                newCost = costFromEnd[box] + distance
+
+            if box not in costFromEnd or newCost < costFromEnd[box]:
                 # mark as visited
                 endBoxes[box] = endCurrent[1]
-
-                # this is just a simple middle point distance check
-                xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
-
-                # add this neighbor to the queue with its distance to destination as its priority
-                distance = ((xMiddle - source_point[0])**2 + (yMiddle - source_point[1])**2)**0.5
-                heappush(endQueue, (distance, box))
+                costFromEnd[box] = newCost
+                heappush(endQueue, (newCost, box))
 
 
     return path, boxes.keys()
