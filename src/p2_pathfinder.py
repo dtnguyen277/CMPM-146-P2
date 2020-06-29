@@ -42,9 +42,14 @@ def find_path(source_point, destination_point, mesh):
     # TODO: we're told not to use two queues, but like come on
     startQueue = [(0, sourceBox)]
     costFromStart = {}
+    costFromStart[sourceBox] = 0
     endQueue = [(0, endBox)]
     costFromEnd = {}
+    costFromEnd[endBox] = 0
     matching = None
+
+    def distanceBetween(x1,y1, x2,y2):
+        return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
 
     while matching == None:
         startCurrent = heappop(startQueue)
@@ -101,35 +106,29 @@ def find_path(source_point, destination_point, mesh):
             # break because now we're done with the search loop
             break
 
-        # check all neighbors and add them to the queue
+        currentXMiddle, currentYMiddle = (startCurrent[1][0] + startCurrent[1][1])/2, (startCurrent[1][2] + startCurrent[1][3])/2
         for box in mesh['adj'][startCurrent[1]]:
             xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
-            distance = ((xMiddle - destination_point[0])**2 + (yMiddle - destination_point[1])**2)**0.5
+            distanceToDestination = distanceBetween(xMiddle,yMiddle, destination_point[0],destination_point[1])
 
-            newCost = distance
-            if box in costFromStart:
-                newCost = costFromStart[box] + distance
+            newCost = costFromStart[startCurrent[1]] + distanceBetween(xMiddle,yMiddle, currentXMiddle,currentYMiddle)
 
             if box not in costFromStart or newCost < costFromStart[box]:
-                # mark as visited
                 startBoxes[box] = startCurrent[1]
                 costFromStart[box] = newCost
-                heappush(startQueue, (newCost, box))
+                heappush(startQueue, (newCost + distanceToDestination, box))
 
-        # check all neighbors and add them to the queue
+        currentXMiddle, currentYMiddle = (endCurrent[1][0] + endCurrent[1][1])/2, (endCurrent[1][2] + endCurrent[1][3])/2
         for box in mesh['adj'][endCurrent[1]]:
             xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
-            distance = ((xMiddle - source_point[0])**2 + (yMiddle - source_point[1])**2)**0.5
+            distanceToDestination = distanceBetween(xMiddle,yMiddle, source_point[0],source_point[1])
 
-            newCost = distance
-            if box in costFromEnd:
-                newCost = costFromEnd[box] + distance
+            newCost = costFromEnd[endCurrent[1]] + distanceBetween(xMiddle,yMiddle, currentXMiddle,currentYMiddle)
 
             if box not in costFromEnd or newCost < costFromEnd[box]:
-                # mark as visited
                 endBoxes[box] = endCurrent[1]
                 costFromEnd[box] = newCost
-                heappush(endQueue, (newCost, box))
+                heappush(endQueue, (newCost + distanceToDestination, box))
 
 
     return path, boxes.keys()
