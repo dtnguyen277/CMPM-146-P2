@@ -35,11 +35,12 @@ def find_path(source_point, destination_point, mesh):
     # initialize the variables that will be returned by this function
     path = []
     boxes = {sourceBox: None}
-    startBoxes = {sourceBox: None}
-    endBoxes = {endBox: None}
 
     # initialize stuff for a simple breadth search
-    # TODO: we're told not to use two queues, but like come on
+    # we're told not to use two queues, but it's easy and readable so i did it anyway :P
+    # it could be in different functions, but for a simple project this is fine in my opinion
+    startBoxes = {sourceBox: None}
+    endBoxes = {endBox: None}
     startQueue = [(0, sourceBox)]
     costFromStart = {}
     costFromStart[sourceBox] = 0
@@ -48,9 +49,12 @@ def find_path(source_point, destination_point, mesh):
     costFromEnd[endBox] = 0
     matching = None
 
+    # euclidian distance function for costs and distance left estimation
     def distanceBetween(x1,y1, x2,y2):
         return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
 
+    # start the actual search loop
+    # this successfully finishes once the two A* searches from the start and the end meet and a line path is formed
     while matching == None:
         startCurrent = heappop(startQueue)
         endCurrent = heappop(endQueue)
@@ -69,8 +73,7 @@ def find_path(source_point, destination_point, mesh):
 
         if matching != None:
             # we have found a path, now time to make a good line
-            # TODO: this line might want to meet in the middle, instead of being one-way; depends on what the instructors want
-            print("Destination Found!")
+            print("Path found successfully!")
 
             # populate the pathBoxes list with boxes from both sides of the search
             pathBoxes = []
@@ -84,7 +87,7 @@ def find_path(source_point, destination_point, mesh):
                 this = endBoxes[this]
                 pathBoxes.append(this)
 
-            # drawing the actual line
+            # going through the list of boxes where the path will be that was just made and plotting the actual line
             lastPoint = (source_point[0], source_point[1])
             for i in range(0, len(pathBoxes)-1):
                 thisBox = pathBoxes[i]
@@ -106,29 +109,41 @@ def find_path(source_point, destination_point, mesh):
             # break because now we're done with the search loop
             break
 
-        currentXMiddle, currentYMiddle = (startCurrent[1][0] + startCurrent[1][1])/2, (startCurrent[1][2] + startCurrent[1][3])/2
-        for box in mesh['adj'][startCurrent[1]]:
-            xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
-            distanceToDestination = distanceBetween(xMiddle,yMiddle, destination_point[0],destination_point[1])
+        # A* pathfinding from the start point towards the endpoint
+        if startCurrent[1]:
+            currentXMiddle, currentYMiddle = (startCurrent[1][0] + startCurrent[1][1])/2, (startCurrent[1][2] + startCurrent[1][3])/2
+            for box in mesh['adj'][startCurrent[1]]:
+                xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
+                distanceToDestination = distanceBetween(xMiddle,yMiddle, destination_point[0],destination_point[1])
 
-            newCost = costFromStart[startCurrent[1]] + distanceBetween(xMiddle,yMiddle, currentXMiddle,currentYMiddle)
+                # i'm just basing costs off of midpoints, please don't kill me
+                newCost = costFromStart[startCurrent[1]] + distanceBetween(xMiddle,yMiddle, currentXMiddle,currentYMiddle)
 
-            if box not in costFromStart or newCost < costFromStart[box]:
-                startBoxes[box] = startCurrent[1]
-                costFromStart[box] = newCost
-                heappush(startQueue, (newCost + distanceToDestination, box))
+                if box not in costFromStart or newCost < costFromStart[box]:
+                    startBoxes[box] = startCurrent[1]
+                    costFromStart[box] = newCost
+                    heappush(startQueue, (newCost + distanceToDestination, box))
+        else:
+            print("Adequate path unable to be found.")
+            break
 
-        currentXMiddle, currentYMiddle = (endCurrent[1][0] + endCurrent[1][1])/2, (endCurrent[1][2] + endCurrent[1][3])/2
-        for box in mesh['adj'][endCurrent[1]]:
-            xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
-            distanceToDestination = distanceBetween(xMiddle,yMiddle, source_point[0],source_point[1])
+        # A* pathfinding from the endpoint towards the startpoint
+        if endCurrent[1]:
+            currentXMiddle, currentYMiddle = (endCurrent[1][0] + endCurrent[1][1])/2, (endCurrent[1][2] + endCurrent[1][3])/2
+            for box in mesh['adj'][endCurrent[1]]:
+                xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
+                distanceToDestination = distanceBetween(xMiddle,yMiddle, source_point[0],source_point[1])
 
-            newCost = costFromEnd[endCurrent[1]] + distanceBetween(xMiddle,yMiddle, currentXMiddle,currentYMiddle)
+                # i'm just basing costs off of midpoints, please don't kill me
+                newCost = costFromEnd[endCurrent[1]] + distanceBetween(xMiddle,yMiddle, currentXMiddle,currentYMiddle)
 
-            if box not in costFromEnd or newCost < costFromEnd[box]:
-                endBoxes[box] = endCurrent[1]
-                costFromEnd[box] = newCost
-                heappush(endQueue, (newCost + distanceToDestination, box))
+                if box not in costFromEnd or newCost < costFromEnd[box]:
+                    endBoxes[box] = endCurrent[1]
+                    costFromEnd[box] = newCost
+                    heappush(endQueue, (newCost + distanceToDestination, box))
+        else:
+            print("Adequate path unable to be found.")
+            break
 
 
     return path, boxes.keys()
