@@ -35,62 +35,93 @@ def find_path(source_point, destination_point, mesh):
     # initialize the variables that will be returned by this function
     path = []
     boxes = {sourceBox: None}
+    startBoxes = {sourceBox: None}
+    endBoxes = {endBox: None}
 
     # initialize stuff for a simple breadth search
-    queue = [(0, sourceBox)]
+    startQueue = [(0, sourceBox)]
+    endQueue = [(0, endBox)]
     cost_so_far = {sourceBox: 0}
-    destFound = False
-    # first point of the line is the end point so we set it here
-    lastPoint = (destination_point[0], destination_point[1])
 
-    while queue:
-        current = heappop(queue)
+    while True:
+        startCurrent = heappop(startQueue)
+        endCurrent = heappop(endQueue)
 
-        # check if destination found
-        if current[1] == endBox:
+        # test if hit the same box with the start and end searches
+        # if we do, then we have found a path
+        matching = None
+        if startCurrent[1] in endBoxes:
+            matching = startCurrent[1]
+        if endCurrent[1] in startBoxes:
+            matching = endCurrent[1]
+
+        if matching != None:
+            # we have found a path, now time to make a good line
+            # TODO: this line should meet in the middle, instead of being one-way
             print("Destination Found!")
-            destFound = True
 
-            current_back_node = endBox
+            # combine both box dict into one big dict
+            boxes = {**startBoxes, **endBoxes}
 
-            # backtrack through the boxes visited to make a line path
-            while current_back_node != sourceBox:
-                # to get the point for this box, take the last point
-                # and constrain it to the bounds of the next box
-                next_node = boxes[current_back_node]
+            # populate the pathBoxes list with boxes from both sides of the search
+            pathBoxes = []
+            this = matching
+            while this != sourceBox:
+                pathBoxes.insert(0, this)
+                this = startBoxes[this]
+            pathBoxes.insert(0, sourceBox)
+            this = matching
+            while this != endBox:
+                this = endBoxes[this]
+                pathBoxes.append(this)
+
+            # drawing the actual line
+            lastPoint = (source_point[0], source_point[1])
+            for i in range(0, len(pathBoxes)-1):
+                thisBox = pathBoxes[i]
+                nextBox = pathBoxes[i+1]
+
                 thisPoint = (lastPoint[0], lastPoint[1])
-                thisPoint = (max(thisPoint[0], next_node[0]), thisPoint[1])
-                thisPoint = (min(thisPoint[0], next_node[1]), thisPoint[1])
-                thisPoint = (thisPoint[0], max(thisPoint[1], next_node[2]))
-                thisPoint = (thisPoint[0], min(thisPoint[1], next_node[3]))
+                thisPoint = (max(thisPoint[0], nextBox[0]), thisPoint[1])
+                thisPoint = (min(thisPoint[0], nextBox[1]), thisPoint[1])
+                thisPoint = (thisPoint[0], max(thisPoint[1], nextBox[2]))
+                thisPoint = (thisPoint[0], min(thisPoint[1], nextBox[3]))
 
-                # draw a line from the previous point to this point
                 line = ((lastPoint[0], lastPoint[1]), (thisPoint[0], thisPoint[1]))
                 path.append(line)
 
-                # go to the next box
-                lastPoint = (thisPoint[0], thisPoint[1])
-                current_back_node = next_node
-
-            # links source point to the line
-            line = ((lastPoint[0], lastPoint[1]), (source_point[0], source_point[1]))
+                lastPoint = thisPoint
+            line = ((lastPoint[0], lastPoint[1]), (destination_point[0], destination_point[1]))
             path.append(line)
+
+            # break because now we're done with the search loop
             break
 
         # check all neighbors and add them to the queue
-        for box in mesh['adj'][current[1]]:
-            if box not in boxes:
+        for box in mesh['adj'][startCurrent[1]]:
+            if box not in startBoxes:
                 # mark as visited
-                boxes[box] = current[1]
+                startBoxes[box] = startCurrent[1]
 
                 # this is just a simple middle point distance check
                 xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
 
                 # add this neighbor to the queue with its distance to destination as its priority
                 distance = ((xMiddle - destination_point[0])**2 + (yMiddle - destination_point[1])**2)**0.5
-                heappush(queue, (distance, box))
+                heappush(startQueue, (distance, box))
 
-    if not destFound:
-        print("Destination was not found")
+        # check all neighbors and add them to the queue
+        for box in mesh['adj'][endCurrent[1]]:
+            if box not in endBoxes:
+                # mark as visited
+                endBoxes[box] = endCurrent[1]
+
+                # this is just a simple middle point distance check
+                xMiddle, yMiddle = (box[0] + box[1])/2, (box[2] + box[3])/2
+
+                # add this neighbor to the queue with its distance to destination as its priority
+                distance = ((xMiddle - source_point[0])**2 + (yMiddle - source_point[1])**2)**0.5
+                heappush(endQueue, (distance, box))
+
 
     return path, boxes.keys()
