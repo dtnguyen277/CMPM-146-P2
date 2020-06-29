@@ -34,6 +34,7 @@ def find_path(source_point, destination_point, mesh):
 
     # initialize the variables that will be returned by this function
     path = []
+    # TODO: putting too many boxes in the boxes list, only put the ones we actually explore
     boxes = {sourceBox: None}
     startBoxes = {sourceBox: None}
     endBoxes = {endBox: None}
@@ -48,6 +49,11 @@ def find_path(source_point, destination_point, mesh):
         startCurrent = heappop(startQueue)
         endCurrent = heappop(endQueue)
 
+        if startCurrent[1] not in boxes:
+            boxes[startCurrent[1]] = startCurrent
+        if endCurrent[1] not in boxes:
+            boxes[endCurrent[1]] = endCurrent
+
         # test if hit the same box with the start and end searches
         # if we do, then we have found a path
         matching = None
@@ -60,9 +66,6 @@ def find_path(source_point, destination_point, mesh):
             # we have found a path, now time to make a good line
             # TODO: this line should meet in the middle, instead of being one-way
             print("Destination Found!")
-
-            # combine both box dict into one big dict
-            boxes = {**startBoxes, **endBoxes}
 
             # populate the pathBoxes list with boxes from both sides of the search
             pathBoxes = []
